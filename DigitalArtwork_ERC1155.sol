@@ -54,17 +54,17 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
     event PublicKeyUpdated(address indexed account, bytes publicKey);
 
     constructor(string memory uri) ERC1155(uri) {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
-
-    // =====================================================
-    // 1. 鏈上公鑰管理
-    // =====================================================
-
-    /// @notice 用戶（Customer、Arbitrator）登記或更新其公鑰資訊
-    function setPublicKey(bytes calldata publicKey) external {
-        publicKeys[msg.sender] = publicKey;
-        emit PublicKeyUpdated(msg.sender, publicKey);
+    
+    // Override supportsInterface to include both ERC1155 and AccessControl interfaces
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC1155, AccessControl)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
     }
 
     // =====================================================
