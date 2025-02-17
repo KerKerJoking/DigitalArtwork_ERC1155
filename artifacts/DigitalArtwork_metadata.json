@@ -219,12 +219,6 @@
 				"inputs": [
 					{
 						"indexed": true,
-						"internalType": "uint256",
-						"name": "tokenId",
-						"type": "uint256"
-					},
-					{
-						"indexed": true,
 						"internalType": "address",
 						"name": "artist",
 						"type": "address"
@@ -236,7 +230,7 @@
 						"type": "uint256"
 					}
 				],
-				"name": "DepositMade",
+				"name": "DepositArtcoin",
 				"type": "event"
 			},
 			{
@@ -249,28 +243,9 @@
 						"type": "uint256"
 					},
 					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "artist",
-						"type": "address"
-					},
-					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					}
-				],
-				"name": "DepositWithdrawn",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "uint256",
-						"name": "tokenId",
+						"name": "purchaseIndex",
 						"type": "uint256"
 					},
 					{
@@ -294,6 +269,12 @@
 					},
 					{
 						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
 						"internalType": "bool",
 						"name": "disputeResult",
 						"type": "bool"
@@ -312,6 +293,12 @@
 						"type": "uint256"
 					},
 					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "artist",
@@ -326,7 +313,7 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "amount",
+						"name": "saleNet",
 						"type": "uint256"
 					}
 				],
@@ -340,6 +327,12 @@
 						"indexed": true,
 						"internalType": "uint256",
 						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
 						"type": "uint256"
 					},
 					{
@@ -549,6 +542,12 @@
 						"type": "uint256"
 					},
 					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "buyer",
@@ -562,6 +561,25 @@
 					}
 				],
 				"name": "VerificationResult",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "artist",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "WithdrawArtcoin",
 				"type": "event"
 			},
 			{
@@ -619,6 +637,59 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "artistDeposits",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"name": "artworkPurchases",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "buyer",
+						"type": "address"
+					},
+					{
+						"internalType": "enum DigitalArtwork.PurchaseState",
+						"name": "state",
+						"type": "uint8"
+					},
+					{
+						"internalType": "uint256",
+						"name": "lockedDeposit",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "uint256",
 						"name": "",
 						"type": "uint256"
@@ -634,16 +705,6 @@
 					{
 						"internalType": "string",
 						"name": "name",
-						"type": "string"
-					},
-					{
-						"internalType": "bytes32",
-						"name": "hash_artwork",
-						"type": "bytes32"
-					},
-					{
-						"internalType": "string",
-						"name": "hash_thumb",
 						"type": "string"
 					},
 					{
@@ -667,24 +728,9 @@
 						"type": "uint256"
 					},
 					{
-						"internalType": "uint256",
-						"name": "deposit",
-						"type": "uint256"
-					},
-					{
 						"internalType": "address",
 						"name": "artist",
 						"type": "address"
-					},
-					{
-						"internalType": "address",
-						"name": "buyer",
-						"type": "address"
-					},
-					{
-						"internalType": "enum DigitalArtwork.ArtworkState",
-						"name": "state",
-						"type": "uint8"
 					}
 				],
 				"stateMutability": "view",
@@ -746,16 +792,6 @@
 						"type": "string"
 					},
 					{
-						"internalType": "bytes32",
-						"name": "_hash_artwork",
-						"type": "bytes32"
-					},
-					{
-						"internalType": "string",
-						"name": "_hash_thumb",
-						"type": "string"
-					},
-					{
 						"internalType": "string",
 						"name": "_hash_json",
 						"type": "string"
@@ -799,16 +835,11 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
-						"name": "_tokenId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
 						"name": "amount",
 						"type": "uint256"
 					}
 				],
-				"name": "depositForArtwork",
+				"name": "depositArtcoin",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -836,16 +867,6 @@
 								"type": "string"
 							},
 							{
-								"internalType": "bytes32",
-								"name": "hash_artwork",
-								"type": "bytes32"
-							},
-							{
-								"internalType": "string",
-								"name": "hash_thumb",
-								"type": "string"
-							},
-							{
 								"internalType": "string",
 								"name": "hash_json",
 								"type": "string"
@@ -866,27 +887,53 @@
 								"type": "uint256"
 							},
 							{
-								"internalType": "uint256",
-								"name": "deposit",
-								"type": "uint256"
-							},
-							{
 								"internalType": "address",
 								"name": "artist",
 								"type": "address"
-							},
+							}
+						],
+						"internalType": "struct DigitalArtwork.Artwork",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "getPurchaseInfo",
+				"outputs": [
+					{
+						"components": [
 							{
 								"internalType": "address",
 								"name": "buyer",
 								"type": "address"
 							},
 							{
-								"internalType": "enum DigitalArtwork.ArtworkState",
+								"internalType": "enum DigitalArtwork.PurchaseState",
 								"name": "state",
 								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "lockedDeposit",
+								"type": "uint256"
 							}
 						],
-						"internalType": "struct DigitalArtwork.Artwork",
+						"internalType": "struct DigitalArtwork.Purchase",
 						"name": "",
 						"type": "tuple"
 					}
@@ -1157,12 +1204,17 @@
 						"type": "uint256"
 					},
 					{
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
 						"internalType": "bool",
 						"name": "disputeResult",
 						"type": "bool"
 					}
 				],
-				"name": "settleDispute",
+				"name": "settlePurchaseDispute",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1213,12 +1265,17 @@
 						"type": "uint256"
 					},
 					{
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
 						"internalType": "bool",
 						"name": "verificationResult",
 						"type": "bool"
 					}
 				],
-				"name": "verifyHash",
+				"name": "verifyPurchase",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1227,16 +1284,11 @@
 				"inputs": [
 					{
 						"internalType": "uint256",
-						"name": "_tokenId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
 						"name": "amount",
 						"type": "uint256"
 					}
 				],
-				"name": "withdrawForArtwork",
+				"name": "withdrawArtcoin",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1383,29 +1435,32 @@
 		"userdoc": {
 			"kind": "user",
 			"methods": {
-				"createArtwork(string,bytes32,string,string,uint256,uint256)": {
-					"notice": "由經授權的 Artist 建立作品發行模板"
+				"createArtwork(string,string,uint256,uint256)": {
+					"notice": "由經授權的 Artist 建立 Artwork 模板"
 				},
-				"depositForArtwork(uint256,uint256)": {
-					"notice": "Artist 為指定作品存入 ARTcoin 作為押金   要求在呼叫前先將 ARTcoin 轉移權限授予合約（或直接透過此函數調用 safeTransferFrom）"
+				"depositArtcoin(uint256)": {
+					"notice": "Artist 存入 ARTcoin 作為全域押金（供多次作品發行使用）"
 				},
 				"getArtworkInfo(uint256)": {
-					"notice": "查詢指定 tokenId 的作品資訊"
+					"notice": "查詢指定 tokenId 的 Artwork 資訊"
+				},
+				"getPurchaseInfo(uint256,uint256)": {
+					"notice": "查詢指定 artwork 的某筆購買資訊"
 				},
 				"mintARTcoin(address,uint256)": {
 					"notice": "由合約管理者（admin）增發 ARTcoin 給指定地址"
 				},
 				"mintArtwork(uint256)": {
-					"notice": "Customer 購買（鑄造）該作品 NFT，需支付 2 倍價格   此範例假設每件作品僅有一次購買機會（若支援多份，需額外記錄每筆購買資訊）"
+					"notice": "Customer 購買（鑄造）該 Artwork NFT，需支付 2 倍售價   同時從該 Artwork 所屬 Artist 的全域押金中扣除相同金額作鎖定，記錄在該筆購買中"
 				},
-				"settleDispute(uint256,bool)": {
-					"notice": "仲裁者對爭議進行判定。   若 disputeResult 為 true，視同驗證通過；若為 false，則雙方退款並銷毀 NFT。"
+				"settlePurchaseDispute(uint256,uint256,bool)": {
+					"notice": "仲裁者對爭議進行判定   若 disputeResult 為 true（作品正確），則流程同驗證成功；若為 false，則全額退還 Buyer 2 倍售價，並返還鎖定押金給 Artist，且銷毀 NFT"
 				},
-				"verifyHash(uint256,bool)": {
-					"notice": "Customer 驗證下載並解密後的內容，回報驗證結果   若驗證通過：退還價格的一倍給 Customer，並將該金額加入 Artist 押金   若驗證失敗：進入爭議流程"
+				"verifyPurchase(uint256,uint256,bool)": {
+					"notice": "Customer 驗證下載內容後回報結果 若驗證成功：退還 Buyer art.price，使其實際支付 art.price，並將鎖定押金與 art.price 累入 Artist 押金池 若驗證失敗：進入爭議流程"
 				},
-				"withdrawForArtwork(uint256,uint256)": {
-					"notice": "Artist 提領部分押金，將合約內的 ARTcoin 退還給 artist"
+				"withdrawArtcoin(uint256)": {
+					"notice": "Artist 提領其可用的押金（注意：鎖定中的押金不可提領）"
 				}
 			},
 			"version": 1
@@ -1580,11 +1635,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155.sol": {
-			"keccak256": "0xfea4d532108db8faa549ca1693683cd095f89c1fc511af6a272aae546273e073",
+			"keccak256": "0xc98c69eef4c2c395974c4575edc408bd954b76256c2048912e8c97aab341d488",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://1c69254dd89e3988379b80310753ec9a74854f01019ea30c47926a883286fcaa",
-				"dweb:/ipfs/QmWBcU7rWsaefsTeYck42AWrs7mh9YCdmPeYn9pH8eTSDM"
+				"bzz-raw://fb3692cb9cf99aca722b350b9e4038788326e9757da64f97fb6a1ddb7f7c3cfb",
+				"dweb:/ipfs/Qmd5h7wSt8ZmRRweYJPJ7BE892G6h63W1RRaNK9pji6gP5"
 			]
 		}
 	},
