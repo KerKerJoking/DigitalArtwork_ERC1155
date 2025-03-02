@@ -1826,11 +1826,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155.sol": {
-			"keccak256": "0x06c2a90529726110d04475f76ab9861423043855aa5da878a88e10a8bb55476d",
+			"keccak256": "0xdd2073e743459d4a01a38cb27123f2e853c4a09dfad50b3ea2bf905f4789aa5f",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://e5524a279f32f21667b55913af6bc3803e4e210da327066dd175beda7df5da04",
-				"dweb:/ipfs/QmVLsYxaBrnvB9cEJKuCarD8FdMcAXwg84WE86JfYfusru"
+				"bzz-raw://7c697a426c102663b5fab77b9c6819ee38b37417740b6a9c57ab682be58a8585",
+				"dweb:/ipfs/QmPNpicwcokKaVW8Rn3xKfLb7gar4VQ5jGo7N9DpLLtFE3"
 			]
 		}
 	},

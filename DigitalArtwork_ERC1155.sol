@@ -107,20 +107,16 @@ contract DigitalArtwork is ERC1155, ERC1155Holder, AccessControl, ReentrancyGuar
     }
 
     function mintARTcoin(uint256 amount) external nonReentrant {
-        // 計算所需 stablecoin 數量（整數除法）
-        uint256 requiredStable = amount / 100;
         // 從呼叫者帳戶轉移 stablecoin 至本合約（必須先 approve 給 stableCoin 合約）
-        require(stableCoin.transferFrom(msg.sender, address(this), requiredStable), "Stable coin transfer failed");
+        require(stableCoin.transferFrom(msg.sender, address(this), amount), "Stable coin transfer failed");
         // Mint ARTcoin（tokenId 為 0）
         _mint(msg.sender, ARTCOIN_ID, amount, "");
     }
 
-    /// @notice 任何人皆可 burn ARTcoin，burn 時依比例退還 stablecoin 給使用者
-    /// 例如 burn 100 ARTcoin，則退還 1 單位 stablecoin
+    /// @notice 任何人皆可 burn ARTcoin，burn 時退還相等 stablecoin 給使用者
     function burnARTcoin(uint256 amount) external nonReentrant {
         _burn(msg.sender, ARTCOIN_ID, amount);
-        uint256 refundStable = amount / 100;
-        require(stableCoin.transfer(msg.sender, refundStable), "Stable coin refund failed");
+        require(stableCoin.transfer(msg.sender, amount), "Stable coin refund failed");
     }
 
     // =====================================================
