@@ -5,8 +5,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
+contract DigitalArtwork is ERC1155, ERC1155Holder, AccessControl, ReentrancyGuard {
     // 定義角色
     bytes32 public constant ARTIST_ROLE = keccak256("ARTIST_ROLE");
     bytes32 public constant ARBITRATOR_ROLE = keccak256("ARBITRATOR_ROLE");
@@ -15,6 +17,10 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
     uint256 public constant ARTCOIN_ID = 0;
     // Artwork 模板的 tokenId 由 1 開始累計
     uint256 public currentArtworkId;
+    // 用戶超時未完成 Purchase 時間
+    uint256 public constant CONFIRMATION_TIMEOUT = 10 minutes;
+    // 引入對應的 Stablecoin 合約，該 stablecoin 遵循 ERC20 標準
+    IERC20 public stableCoin;
 
     // 用戶（例如 Customer 與 Arbitrator）在鏈上登記的公鑰（如有需要）
     mapping(address => bytes) public publicKeys;
@@ -42,16 +48,13 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
         address buyer;         // 購買者地址
         PurchaseState state;   // 該筆購買的狀態
         uint256 lockedDeposit; // 該次購買所鎖定的押金（通常為 2 倍售價）
+        uint256 purchaseTime; 
     }
 
     // artwork tokenId 對應 Artwork 模板
     mapping(uint256 => Artwork) public artworks;
     // artwork tokenId 對應多筆購買記錄
     mapping(uint256 => Purchase[]) public artworkPurchases;
-
-    // =====================================================
-    // Artist 押金池
-    // =====================================================
 
     // 全域記錄每個 Artist 的押金（來自 depositArtcoin 與 NFT 銷售收益）
     mapping(address => uint256) public artistDeposits;
@@ -60,10 +63,11 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
     // 事件定義
     // =====================================================
 
+    event StableCoinAddressSet(address stableCoinAddress);
     event ArtworkCreated(uint256 indexed tokenId, address indexed artist, uint256 price, uint256 supplyLimit);
     event DepositArtcoin(address indexed artist, uint256 amount);
     event WithdrawArtcoin(address indexed artist, uint256 amount);
-    event ArtworkMinted(uint256 indexed tokenId, address indexed buyer);
+    event ArtworkMinted(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer);
     event VerificationResult(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer, bool result);
     event DisputeOpened(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer);
     event DisputeSettled(uint256 indexed tokenId, uint256 purchaseIndex, bool disputeResult);
@@ -83,7 +87,7 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
     function supportsInterface(bytes4 interfaceId)
         public
         view
-        override(ERC1155, AccessControl)
+        override(ERC1155, ERC1155Holder, AccessControl)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
@@ -94,8 +98,29 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
     // =====================================================
 
     /// @notice 由合約管理者（admin）增發 ARTcoin 給指定地址
-    function mintARTcoin(address to, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _mint(to, ARTCOIN_ID, amount, "");
+    //function mintARTcoin(address to, uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    //    _mint(to, ARTCOIN_ID, amount, "");
+    //}
+    function setStableCoinAddress(address _stableCoinAddress) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        stableCoin = IERC20(_stableCoinAddress);
+        emit StableCoinAddressSet(_stableCoinAddress);
+    }
+
+    function mintARTcoin(uint256 amount) external nonReentrant {
+        // 計算所需 stablecoin 數量（整數除法）
+        uint256 requiredStable = amount / 100;
+        // 從呼叫者帳戶轉移 stablecoin 至本合約（必須先 approve 給 stableCoin 合約）
+        require(stableCoin.transferFrom(msg.sender, address(this), requiredStable), "Stable coin transfer failed");
+        // Mint ARTcoin（tokenId 為 0）
+        _mint(msg.sender, ARTCOIN_ID, amount, "");
+    }
+
+    /// @notice 任何人皆可 burn ARTcoin，burn 時依比例退還 stablecoin 給使用者
+    /// 例如 burn 100 ARTcoin，則退還 1 單位 stablecoin
+    function burnARTcoin(uint256 amount) external nonReentrant {
+        _burn(msg.sender, ARTCOIN_ID, amount);
+        uint256 refundStable = amount / 100;
+        require(stableCoin.transfer(msg.sender, refundStable), "Stable coin refund failed");
     }
 
     // =====================================================
@@ -166,14 +191,16 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
         Purchase memory newPurchase = Purchase({
             buyer: msg.sender,
             state: PurchaseState.Active,
-            lockedDeposit: requiredAmount
+            lockedDeposit: requiredAmount,
+            purchaseTime: block.timestamp
         });
         artworkPurchases[_tokenId].push(newPurchase);
+        uint256 purchaseIndex = artworkPurchases[_tokenId].length - 1;
 
         art.minted += 1;
         // 鑄造 NFT 至買家（ERC1155 可用同一 tokenId 多次發行）
         _mint(msg.sender, _tokenId, 1, "");
-        emit ArtworkMinted(_tokenId, msg.sender);
+        emit ArtworkMinted(_tokenId, purchaseIndex, msg.sender);
     }
 
     // =====================================================
@@ -205,6 +232,23 @@ contract DigitalArtwork is ERC1155, AccessControl, ReentrancyGuard {
             purchase.state = PurchaseState.Disputed;
             emit DisputeOpened(_tokenId, purchaseIndex, msg.sender);
         }
+    }
+
+    // 如果 buyer 在超時期限內未確認，允許 artist 強制確認該筆購買
+    function forceConfirmPurchase(uint256 _tokenId, uint256 purchaseIndex) external nonReentrant {
+        Artwork storage art = artworks[_tokenId];
+        require(msg.sender == art.artist, "Only the artist can force confirm");
+        require(purchaseIndex < artworkPurchases[_tokenId].length, "Invalid purchase index");
+        Purchase storage purchase = artworkPurchases[_tokenId][purchaseIndex];
+        require(purchase.state == PurchaseState.Active, "Purchase not active");
+        require(block.timestamp >= purchase.purchaseTime + CONFIRMATION_TIMEOUT, "Confirmation timeout not reached");
+
+        // 模擬 buyer 驗證成功的處理流程
+        _safeTransferFrom(address(this), purchase.buyer, ARTCOIN_ID, art.price, "");
+        artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
+        purchase.lockedDeposit = 0;
+        purchase.state = PurchaseState.Resolved;
+        emit FundsDistributed(_tokenId, purchaseIndex, art.artist, purchase.buyer, art.price);
     }
 
     /// @notice 仲裁者對爭議進行判定  

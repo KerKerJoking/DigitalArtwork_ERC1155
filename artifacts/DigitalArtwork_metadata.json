@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.26+commit.8a97fa7a"
+		"version": "0.8.20+commit.a1b79de6"
 	},
 	"language": "Solidity",
 	"output": {
@@ -202,6 +202,12 @@
 						"indexed": true,
 						"internalType": "uint256",
 						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
 						"type": "uint256"
 					},
 					{
@@ -443,6 +449,19 @@
 				"anonymous": false,
 				"inputs": [
 					{
+						"indexed": false,
+						"internalType": "address",
+						"name": "stableCoinAddress",
+						"type": "address"
+					}
+				],
+				"name": "StableCoinAddressSet",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
 						"indexed": true,
 						"internalType": "address",
 						"name": "operator",
@@ -623,6 +642,19 @@
 			},
 			{
 				"inputs": [],
+				"name": "CONFIRMATION_TIMEOUT",
+				"outputs": [
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
 				"name": "DEFAULT_ADMIN_ROLE",
 				"outputs": [
 					{
@@ -681,6 +713,11 @@
 					{
 						"internalType": "uint256",
 						"name": "lockedDeposit",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "purchaseTime",
 						"type": "uint256"
 					}
 				],
@@ -787,6 +824,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "uint256",
+						"name": "amount",
+						"type": "uint256"
+					}
+				],
+				"name": "burnARTcoin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "string",
 						"name": "_name",
 						"type": "string"
@@ -840,6 +890,24 @@
 					}
 				],
 				"name": "depositArtcoin",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "forceConfirmPurchase",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -930,6 +998,11 @@
 							{
 								"internalType": "uint256",
 								"name": "lockedDeposit",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "purchaseTime",
 								"type": "uint256"
 							}
 						],
@@ -1029,11 +1102,6 @@
 			{
 				"inputs": [
 					{
-						"internalType": "address",
-						"name": "to",
-						"type": "address"
-					},
-					{
 						"internalType": "uint256",
 						"name": "amount",
 						"type": "uint256"
@@ -1054,6 +1122,84 @@
 				],
 				"name": "mintArtwork",
 				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "uint256[]",
+						"name": "",
+						"type": "uint256[]"
+					},
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"name": "onERC1155BatchReceived",
+				"outputs": [
+					{
+						"internalType": "bytes4",
+						"name": "",
+						"type": "bytes4"
+					}
+				],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "",
+						"type": "uint256"
+					},
+					{
+						"internalType": "bytes",
+						"name": "",
+						"type": "bytes"
+					}
+				],
+				"name": "onERC1155Received",
+				"outputs": [
+					{
+						"internalType": "bytes4",
+						"name": "",
+						"type": "bytes4"
+					}
+				],
 				"stateMutability": "nonpayable",
 				"type": "function"
 			},
@@ -1199,6 +1345,19 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "_stableCoinAddress",
+						"type": "address"
+					}
+				],
+				"name": "setStableCoinAddress",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "uint256",
 						"name": "_tokenId",
 						"type": "uint256"
@@ -1217,6 +1376,19 @@
 				"name": "settlePurchaseDispute",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "stableCoin",
+				"outputs": [
+					{
+						"internalType": "contract IERC20",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -1435,6 +1607,9 @@
 		"userdoc": {
 			"kind": "user",
 			"methods": {
+				"burnARTcoin(uint256)": {
+					"notice": "任何人皆可 burn ARTcoin，burn 時依比例退還 stablecoin 給使用者 例如 burn 100 ARTcoin，則退還 1 單位 stablecoin"
+				},
 				"createArtwork(string,string,uint256,uint256)": {
 					"notice": "由經授權的 Artist 建立 Artwork 模板"
 				},
@@ -1447,11 +1622,11 @@
 				"getPurchaseInfo(uint256,uint256)": {
 					"notice": "查詢指定 artwork 的某筆購買資訊"
 				},
-				"mintARTcoin(address,uint256)": {
-					"notice": "由合約管理者（admin）增發 ARTcoin 給指定地址"
-				},
 				"mintArtwork(uint256)": {
 					"notice": "Customer 購買（鑄造）該 Artwork NFT，需支付 2 倍售價   同時從該 Artwork 所屬 Artist 的全域押金中扣除相同金額作鎖定，記錄在該筆購買中"
+				},
+				"setStableCoinAddress(address)": {
+					"notice": "由合約管理者（admin）增發 ARTcoin 給指定地址"
 				},
 				"settlePurchaseDispute(uint256,uint256,bool)": {
 					"notice": "仲裁者對爭議進行判定   若 disputeResult 為 true（作品正確），則流程同驗證成功；若為 false，則全額退還 Buyer 2 倍售價，並返還鎖定押金給 Artist，且銷毀 NFT"
@@ -1470,7 +1645,7 @@
 		"compilationTarget": {
 			"DigitalArtwork_ERC1155.sol": "DigitalArtwork"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "shanghai",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -1546,12 +1721,28 @@
 				"dweb:/ipfs/QmcWDuWkndox3dxa5P7ZgpKy3iuQKkxBq1cR9hPV1ZzAfa"
 			]
 		},
+		"@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol": {
+			"keccak256": "0xe103e95f854ef0cd1bba5f469175f67cd332f5c2561941f165e3dd65cee94d6d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://6cf8cc5d07cf8003255f9d766fe8188b9f6e33b6240e126a605f0d061566b23e",
+				"dweb:/ipfs/Qmd7okDCSoUt1L4G9hmb5c4W8kWUnfpAa2jyBKUp4xKErd"
+			]
+		},
 		"@openzeppelin/contracts/token/ERC1155/utils/ERC1155Utils.sol": {
 			"keccak256": "0x30afe9013aaeb3ba735284a9310792776f57a3b2db6fc1d99628f2c47287f5cf",
 			"license": "MIT",
 			"urls": [
 				"bzz-raw://1c675b740746031092efcedb2e18179f05fce8ba482de64e982715e4aa16bc90",
 				"dweb:/ipfs/QmVdUD89qYudLc88k5AsuQ6VWyz9SE1c6UXrVK32Yqh1YS"
+			]
+		},
+		"@openzeppelin/contracts/token/ERC20/IERC20.sol": {
+			"keccak256": "0xe06a3f08a987af6ad2e1c1e774405d4fe08f1694b67517438b467cecf0da0ef7",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://df6f0c459663c9858b6cba2cda1d14a7d05a985bed6d2de72bd8e78c25ee79db",
+				"dweb:/ipfs/QmeTTxZ7qVk9rjEv2R4CpCwdf8UMCcRqDNMvzNxHc3Fnn9"
 			]
 		},
 		"@openzeppelin/contracts/utils/Arrays.sol": {
@@ -1635,11 +1826,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155.sol": {
-			"keccak256": "0xc98c69eef4c2c395974c4575edc408bd954b76256c2048912e8c97aab341d488",
+			"keccak256": "0x06c2a90529726110d04475f76ab9861423043855aa5da878a88e10a8bb55476d",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://fb3692cb9cf99aca722b350b9e4038788326e9757da64f97fb6a1ddb7f7c3cfb",
-				"dweb:/ipfs/Qmd5h7wSt8ZmRRweYJPJ7BE892G6h63W1RRaNK9pji6gP5"
+				"bzz-raw://e5524a279f32f21667b55913af6bc3803e4e210da327066dd175beda7df5da04",
+				"dweb:/ipfs/QmVLsYxaBrnvB9cEJKuCarD8FdMcAXwg84WE86JfYfusru"
 			]
 		}
 	},
