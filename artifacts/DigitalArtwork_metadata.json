@@ -1608,7 +1608,7 @@
 			"kind": "user",
 			"methods": {
 				"burnARTcoin(uint256)": {
-					"notice": "任何人皆可 burn ARTcoin，burn 時依比例退還 stablecoin 給使用者 例如 burn 100 ARTcoin，則退還 1 單位 stablecoin"
+					"notice": "任何人皆可 burn ARTcoin，burn 時退還相等 stablecoin 給使用者"
 				},
 				"createArtwork(string,string,uint256,uint256)": {
 					"notice": "由經授權的 Artist 建立 Artwork 模板"
@@ -1826,11 +1826,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155.sol": {
-			"keccak256": "0xdd2073e743459d4a01a38cb27123f2e853c4a09dfad50b3ea2bf905f4789aa5f",
+			"keccak256": "0xe6c6c26638da542b1945fce443c2d94b8b666a3fe32729b62efee099cb239f1a",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://7c697a426c102663b5fab77b9c6819ee38b37417740b6a9c57ab682be58a8585",
-				"dweb:/ipfs/QmPNpicwcokKaVW8Rn3xKfLb7gar4VQ5jGo7N9DpLLtFE3"
+				"bzz-raw://a383673cdc5cee8882a3a784a48689250dd4eaca4fefb1ad3b32d6315e6ff6e7",
+				"dweb:/ipfs/QmbSBzr5sLakckyJCNVqAFxN1d8bJXiLgh96PquQrzPcBK"
 			]
 		}
 	},
