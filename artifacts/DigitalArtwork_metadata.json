@@ -257,6 +257,31 @@
 					{
 						"indexed": true,
 						"internalType": "address",
+						"name": "artist",
+						"type": "address"
+					}
+				],
+				"name": "DisputeForced",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
 						"name": "buyer",
 						"type": "address"
 					}
@@ -1607,35 +1632,8 @@
 		"userdoc": {
 			"kind": "user",
 			"methods": {
-				"burnARTcoin(uint256)": {
-					"notice": "任何人皆可 burn ARTcoin，burn 時退還相等 stablecoin 給使用者"
-				},
 				"createArtwork(string,string,uint256,uint256)": {
 					"notice": "由經授權的 Artist 建立 Artwork 模板"
-				},
-				"depositArtcoin(uint256)": {
-					"notice": "Artist 存入 ARTcoin 作為全域押金（供多次作品發行使用）"
-				},
-				"getArtworkInfo(uint256)": {
-					"notice": "查詢指定 tokenId 的 Artwork 資訊"
-				},
-				"getPurchaseInfo(uint256,uint256)": {
-					"notice": "查詢指定 artwork 的某筆購買資訊"
-				},
-				"mintArtwork(uint256)": {
-					"notice": "Customer 購買（鑄造）該 Artwork NFT，需支付 2 倍售價   同時從該 Artwork 所屬 Artist 的全域押金中扣除相同金額作鎖定，記錄在該筆購買中"
-				},
-				"setStableCoinAddress(address)": {
-					"notice": "由合約管理者（admin）增發 ARTcoin 給指定地址"
-				},
-				"settlePurchaseDispute(uint256,uint256,bool)": {
-					"notice": "仲裁者對爭議進行判定   若 disputeResult 為 true（作品正確），則流程同驗證成功；若為 false，則全額退還 Buyer 2 倍售價，並返還鎖定押金給 Artist，且銷毀 NFT"
-				},
-				"verifyPurchase(uint256,uint256,bool)": {
-					"notice": "Customer 驗證下載內容後回報結果 若驗證成功：退還 Buyer art.price，使其實際支付 art.price，並將鎖定押金與 art.price 累入 Artist 押金池 若驗證失敗：進入爭議流程"
-				},
-				"withdrawArtcoin(uint256)": {
-					"notice": "Artist 提領其可用的押金（注意：鎖定中的押金不可提領）"
 				}
 			},
 			"version": 1
@@ -1826,11 +1824,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155.sol": {
-			"keccak256": "0xe6c6c26638da542b1945fce443c2d94b8b666a3fe32729b62efee099cb239f1a",
+			"keccak256": "0xd9c6c4b890090caf2f0ab9b3e6972c42785130f5ba2f1383cc5e886ec0c6574a",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://a383673cdc5cee8882a3a784a48689250dd4eaca4fefb1ad3b32d6315e6ff6e7",
-				"dweb:/ipfs/QmbSBzr5sLakckyJCNVqAFxN1d8bJXiLgh96PquQrzPcBK"
+				"bzz-raw://189db559b3fb513a9697c1df820aabc30575425b0da56a1012a1d9f2a6230c10",
+				"dweb:/ipfs/QmWSkKBVf8semyC2Cy8sQ6r6yBzCJvqU5GvbufH5tsEF4Q"
 			]
 		}
 	},

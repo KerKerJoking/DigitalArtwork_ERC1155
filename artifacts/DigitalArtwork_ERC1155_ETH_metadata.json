@@ -280,6 +280,31 @@
 						"type": "uint256"
 					},
 					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "buyer",
+						"type": "address"
+					}
+				],
+				"name": "DisputeOpened",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
 						"indexed": false,
 						"internalType": "bool",
 						"name": "disputeResult",
@@ -346,15 +371,28 @@
 						"internalType": "address",
 						"name": "buyer",
 						"type": "address"
+					}
+				],
+				"name": "NFTBurned",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
 					},
 					{
 						"indexed": false,
-						"internalType": "bool",
-						"name": "verified",
-						"type": "bool"
+						"internalType": "bytes",
+						"name": "publicKey",
+						"type": "bytes"
 					}
 				],
-				"name": "PurchaseVerified",
+				"name": "PublicKeyUpdated",
 				"type": "event"
 			},
 			{
@@ -523,6 +561,37 @@
 					}
 				],
 				"name": "URI",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "uint256",
+						"name": "tokenId",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					},
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "buyer",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "bool",
+						"name": "result",
+						"type": "bool"
+					}
+				],
+				"name": "VerificationResult",
 				"type": "event"
 			},
 			{
@@ -825,6 +894,108 @@
 				"name": "forceConfirmPurchase",
 				"outputs": [],
 				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_tokenId",
+						"type": "uint256"
+					}
+				],
+				"name": "getArtworkInfo",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "uint256",
+								"name": "tokenId",
+								"type": "uint256"
+							},
+							{
+								"internalType": "string",
+								"name": "name",
+								"type": "string"
+							},
+							{
+								"internalType": "string",
+								"name": "hash_json",
+								"type": "string"
+							},
+							{
+								"internalType": "uint256",
+								"name": "supplyLimit",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "minted",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "price",
+								"type": "uint256"
+							},
+							{
+								"internalType": "address",
+								"name": "artist",
+								"type": "address"
+							}
+						],
+						"internalType": "struct DigitalArtwork_ERC1155_ETH.Artwork",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "uint256",
+						"name": "_tokenId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "purchaseIndex",
+						"type": "uint256"
+					}
+				],
+				"name": "getPurchaseInfo",
+				"outputs": [
+					{
+						"components": [
+							{
+								"internalType": "address",
+								"name": "buyer",
+								"type": "address"
+							},
+							{
+								"internalType": "enum DigitalArtwork_ERC1155_ETH.PurchaseState",
+								"name": "state",
+								"type": "uint8"
+							},
+							{
+								"internalType": "uint256",
+								"name": "lockedDeposit",
+								"type": "uint256"
+							},
+							{
+								"internalType": "uint256",
+								"name": "purchaseTime",
+								"type": "uint256"
+							}
+						],
+						"internalType": "struct DigitalArtwork_ERC1155_ETH.Purchase",
+						"name": "",
+						"type": "tuple"
+					}
+				],
+				"stateMutability": "view",
 				"type": "function"
 			},
 			{
@@ -1546,11 +1717,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155_ETH.sol": {
-			"keccak256": "0x2be9b0554603e16d16559a94b51a2a8dc614ca69c70b73a60e555552ac21e724",
+			"keccak256": "0x7fc8aca4bd4fd6fb2ee3782403cb9bd98fff5e839db6186c0d7e0a523336c043",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://dcf09de8a920eb4e8bba838254da98de860fcf1b3ee773dea1d050c9c03ec36d",
-				"dweb:/ipfs/QmXMRNhNnaxsHQenExsLaSByR4oPafW7f9sP9YsBhuXjAS"
+				"bzz-raw://4b0b07a45efb8711276f18bf634cebf5f255c5c069968b490595f65d520850e6",
+				"dweb:/ipfs/QmUvfXfXEyqx6QoJHzdzPRBsHnPKpWox9KxckH8HiLNoC7"
 			]
 		}
 	},

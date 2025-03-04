@@ -1,88 +1,107 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+// 引入 OpenZeppelin 標準庫
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol"; 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, ReentrancyGuard {
-    // Roles
+    // 定義角色
     bytes32 public constant ARTIST_ROLE = keccak256("ARTIST_ROLE");
     bytes32 public constant ARBITRATOR_ROLE = keccak256("ARBITRATOR_ROLE");
 
+    // Artwork 模板的 tokenId 由 1 開始累計
     uint256 public currentArtworkId;
-    // Timeout period for buyer confirmation (e.g., 10 minutes)
+    // 用戶超時未完成 Purchase 時間
     uint256 public constant CONFIRMATION_TIMEOUT = 10 minutes;
 
-    // Artwork structure
+    // Artwork 資料結構
     struct Artwork {
-        uint256 tokenId;
-        string name;
-        string hash_json;
-        uint256 supplyLimit;
-        uint256 minted;
-        uint256 price; // Price per artwork in wei
-        address artist;
+        uint256 tokenId;       // 作品 NFT 的 token id
+        string name;           // 作品名稱
+        string hash_json;      // 詳細資料 JSON 的 IPFS 地址
+        uint256 supplyLimit;   // 發行量上限
+        uint256 minted;        // 已鑄造數量（用以檢查供應量上限）
+        uint256 price;         // 售價（以 wei 計）
+        address artist;        // 藝術家地址
     }
 
-    // Purchase state
+    // 每筆購買的狀態列舉
     enum PurchaseState { Active, Disputed, Resolved, Refunded }
 
-    // Purchase record structure
+    // 每筆購買記錄
     struct Purchase {
-        address buyer;
-        PurchaseState state;
-        uint256 lockedDeposit; // Amount locked from artist's deposit for this purchase
-        uint256 purchaseTime;
+        address buyer;         // 購買者地址
+        PurchaseState state;   // 該筆購買的狀態
+        uint256 lockedDeposit; // 該次購買所鎖定的押金（通常為 2 倍售價）
+        uint256 purchaseTime; 
     }
 
+    // artwork tokenId 對應 Artwork 模板
     mapping(uint256 => Artwork) public artworks;
+    // artwork tokenId 對應多筆購買記錄
     mapping(uint256 => Purchase[]) public artworkPurchases;
-    // Artist deposit (in ETH)
+
+    // 記錄每個 Artist 的押金（來自 depositArtcoin 與 NFT 銷售收益）
     mapping(address => uint256) public artistDeposits;
 
-    // Events
+    // =====================================================
+    // 事件定義
+    // =====================================================
+
     event ArtworkCreated(uint256 indexed tokenId, address indexed artist, uint256 price, uint256 supplyLimit);
     event ArtworkMinted(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer);
     event FundsDistributed(uint256 indexed tokenId, uint256 purchaseIndex, address indexed artist, address indexed buyer, uint256 saleNet);
-    event PurchaseVerified(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer, bool verified);
+    event VerificationResult(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer, bool result);
     event DisputeForced(uint256 indexed tokenId, uint256 purchaseIndex, address indexed artist);
+    event DisputeOpened(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer);
     event DisputeSettled(uint256 indexed tokenId, uint256 purchaseIndex, bool disputeResult);
+    event NFTBurned(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer);
+    event PublicKeyUpdated(address indexed account, bytes publicKey);
     event DepositETH(address indexed artist, uint256 amount);
     event WithdrawETH(address indexed artist, uint256 amount);
+
+    // =====================================================
+    // 建構子與 supportsInterface
+    // =====================================================
 
     constructor(string memory uri) ERC1155(uri) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
     
+    // Override supportsInterface to include ERC1155 and AccessControl interfaces
     function supportsInterface(bytes4 interfaceId) public view override(ERC1155, ERC1155Holder, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 
-    // Artists deposit ETH as collateral.
-    function depositETH() external payable nonReentrant {
+    // =====================================================
+    // Artist 押金管理（全域押金池）
+    // =====================================================
+
+    // Artist 存入 ETH 作為全域押金（供多次作品發行使用）
+    function depositETH() external payable nonReentrant onlyRole(ARTIST_ROLE) {
         require(msg.value > 0, "Must deposit positive ETH");
         artistDeposits[msg.sender] += msg.value;
         emit DepositETH(msg.sender, msg.value);
     }
 
-    // Artists can withdraw their deposited ETH.
-    function withdrawETH(uint256 amount) external nonReentrant {
+    // Artist 提領其可用的押金（注意：鎖定中的押金不可提領）
+    function withdrawETH(uint256 amount) external nonReentrant onlyRole(ARTIST_ROLE) {
         require(artistDeposits[msg.sender] >= amount, "Insufficient deposit");
         artistDeposits[msg.sender] -= amount;
+        // 從合約地址轉移 ETH 至 Artist 帳戶
         (bool success, ) = payable(msg.sender).call{value: amount}("");
         require(success, "Withdrawal failed");
         emit WithdrawETH(msg.sender, amount);
     }
 
-    // Artists create an artwork template.
-    function createArtwork(
-        string memory _name,
-        string memory _hash_json,
-        uint256 _supplyLimit,
-        uint256 _price
-    ) external onlyRole(ARTIST_ROLE) returns (uint256) {
+    // =====================================================
+    // Artwork 創建
+    // =====================================================
+
+    function createArtwork(string memory _name, string memory _hash_json, uint256 _supplyLimit, uint256 _price) external onlyRole(ARTIST_ROLE) returns (uint256) {
         currentArtworkId++;
         uint256 tokenId = currentArtworkId;
         artworks[tokenId] = Artwork({
@@ -98,15 +117,21 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
         return tokenId;
     }
 
+    // =====================================================
+    // NFT 購買與押金鎖定（支援多筆購買）
+    // =====================================================
+
     // Customers purchase (mint) an artwork NFT by sending exactly 2x the artwork's price in ETH.
     function mintArtwork(uint256 _tokenId) external payable nonReentrant {
         Artwork storage art = artworks[_tokenId];
         require(art.minted < art.supplyLimit, "All NFTs minted");
         uint256 requiredAmount = art.price * 2;
+        // 檢查 Customer 地址轉入 ETH 數量是否正確
         require(msg.value == requiredAmount, "Incorrect ETH amount sent");
+        // 檢查並扣除該 Artwork 所屬 Artist 的全域押金（鎖定用）
         require(artistDeposits[art.artist] >= requiredAmount, "Artist deposit insufficient");
         artistDeposits[art.artist] -= requiredAmount;
-
+        // 建立一筆新的購買記錄
         Purchase memory newPurchase = Purchase({
             buyer: msg.sender,
             state: PurchaseState.Active,
@@ -115,35 +140,43 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
         });
         artworkPurchases[_tokenId].push(newPurchase);
         uint256 purchaseIndex = artworkPurchases[_tokenId].length - 1;
-
+        // 鑄造 NFT 至買家（ERC1155 可用同一 tokenId 多次發行）
         art.minted += 1;
         _mint(msg.sender, _tokenId, 1, "");
         emit ArtworkMinted(_tokenId, purchaseIndex, msg.sender);
     }
 
-    // Buyers verify the purchase outcome.
-    // If verification passes: refund buyer art.price in ETH and add (lockedDeposit + art.price) to artist deposit.
+    // =====================================================
+    // 客戶驗證與款項分配（針對單筆購買）
+    // =====================================================
+
+    // Customer 驗證下載內容後回報結果
     function verifyPurchase(uint256 _tokenId, uint256 purchaseIndex, bool verificationResult) external nonReentrant {
         require(purchaseIndex < artworkPurchases[_tokenId].length, "Invalid purchase index");
         Purchase storage purchase = artworkPurchases[_tokenId][purchaseIndex];
-        require(purchase.buyer == msg.sender, "Caller not buyer");
+        require(purchase.buyer == msg.sender, "Caller is not the buyer");
         require(purchase.state == PurchaseState.Active, "Purchase not active");
-
         Artwork storage art = artworks[_tokenId];
+        emit VerificationResult(_tokenId, purchaseIndex, msg.sender, verificationResult);
+
         if (verificationResult) {
+            // 驗證成功
+            // 退還 Customer 1 倍售價
             (bool success, ) = payable(msg.sender).call{value: art.price}("");
             require(success, "Refund failed");
+            // 將原本鎖定的押金加上銷售收益共 3 倍售價累入 Artist 的押金池
             artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
             purchase.lockedDeposit = 0;
             purchase.state = PurchaseState.Resolved;
             emit FundsDistributed(_tokenId, purchaseIndex, art.artist, msg.sender, art.price);
         } else {
+            // 驗證失敗：進入爭議仲裁流程
             purchase.state = PurchaseState.Disputed;
+            emit DisputeOpened(_tokenId, purchaseIndex, msg.sender);
         }
-        emit PurchaseVerified(_tokenId, purchaseIndex, msg.sender, verificationResult);
     }
 
-    // If the buyer does not confirm within the timeout, the artist can force confirmation.
+    // 如果 Customer 在超時期限內未確認，允許 artist 強制確認該筆購買
     function forceConfirmPurchase(uint256 _tokenId, uint256 purchaseIndex) external nonReentrant {
         Artwork storage art = artworks[_tokenId];
         require(msg.sender == art.artist, "Only artist can force confirm");
@@ -152,8 +185,11 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
         require(purchase.state == PurchaseState.Active, "Purchase not active");
         require(block.timestamp >= purchase.purchaseTime + CONFIRMATION_TIMEOUT, "Timeout not reached");
 
+        // 模擬 Customer 驗證成功的處理流程
+        // 退還 Customer 1 倍售價
         (bool success, ) = payable(purchase.buyer).call{value: art.price}("");
         require(success, "Refund failed");
+        // 將原本鎖定的押金加上銷售收益共 3 倍售價累入 Artist 的押金池
         artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
         purchase.lockedDeposit = 0;
         purchase.state = PurchaseState.Resolved;
@@ -161,8 +197,7 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
         emit DisputeForced(_tokenId, purchaseIndex, msg.sender);
     }
     
-    // Arbitrator settles a disputed purchase.
-    // If disputeResult is true, treat as verification success; otherwise, refund buyer full (2x price) and burn the NFT.
+    // 仲裁者對爭議進行判定
     function settlePurchaseDispute(uint256 _tokenId, uint256 purchaseIndex, bool disputeResult) external nonReentrant onlyRole(ARBITRATOR_ROLE) {
         require(purchaseIndex < artworkPurchases[_tokenId].length, "Invalid purchase index");
         Purchase storage purchase = artworkPurchases[_tokenId][purchaseIndex];
@@ -170,24 +205,46 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
 
         Artwork storage art = artworks[_tokenId];
         if (disputeResult) {
+            // 仲裁認定作品正確
+            // 退還 Customer 1 倍售價
             (bool success, ) = payable(purchase.buyer).call{value: art.price}("");
             require(success, "Refund failed");
+            // 將原本鎖定的押金加上銷售收益共 3 倍售價累入 Artist 的押金池
             artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
             purchase.lockedDeposit = 0;
             purchase.state = PurchaseState.Resolved;
             emit FundsDistributed(_tokenId, purchaseIndex, art.artist, purchase.buyer, art.price);
         } else {
+            // 仲裁認定作品有誤
+            // 全額退還 Customer (2 倍售價)
             (bool success, ) = payable(purchase.buyer).call{value: art.price * 2}("");
             require(success, "Refund failed");
+            // 返還鎖定押金給 Artist  (2 倍售價)
             artistDeposits[art.artist] += purchase.lockedDeposit;
             purchase.lockedDeposit = 0;
             purchase.state = PurchaseState.Refunded;
+            // 銷毀 NFT
             _burn(purchase.buyer, _tokenId, 1);
         }
         emit DisputeSettled(_tokenId, purchaseIndex, disputeResult);
     }
 
-    // Allow the contract to receive ETH.
+    // =====================================================
+    // 輔助查詢函數
+    // =====================================================
+
+    // 查詢指定 tokenId 的 Artwork 資訊
+    function getArtworkInfo(uint256 _tokenId) external view returns (Artwork memory) {
+        return artworks[_tokenId];
+    }
+
+    // 查詢指定 artwork 的某筆購買資訊
+    function getPurchaseInfo(uint256 _tokenId, uint256 purchaseIndex) external view returns (Purchase memory) {
+        require(purchaseIndex < artworkPurchases[_tokenId].length, "Invalid purchase index");
+        return artworkPurchases[_tokenId][purchaseIndex];
+    }
+
+    // 允許本合約接收 ETH.
     receive() external payable {}
     fallback() external payable {}
 }
