@@ -940,108 +940,6 @@
 			{
 				"inputs": [
 					{
-						"internalType": "uint256",
-						"name": "_tokenId",
-						"type": "uint256"
-					}
-				],
-				"name": "getArtworkInfo",
-				"outputs": [
-					{
-						"components": [
-							{
-								"internalType": "uint256",
-								"name": "tokenId",
-								"type": "uint256"
-							},
-							{
-								"internalType": "string",
-								"name": "name",
-								"type": "string"
-							},
-							{
-								"internalType": "string",
-								"name": "hash_json",
-								"type": "string"
-							},
-							{
-								"internalType": "uint256",
-								"name": "supplyLimit",
-								"type": "uint256"
-							},
-							{
-								"internalType": "uint256",
-								"name": "minted",
-								"type": "uint256"
-							},
-							{
-								"internalType": "uint256",
-								"name": "price",
-								"type": "uint256"
-							},
-							{
-								"internalType": "address",
-								"name": "artist",
-								"type": "address"
-							}
-						],
-						"internalType": "struct DigitalArtwork.Artwork",
-						"name": "",
-						"type": "tuple"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "_tokenId",
-						"type": "uint256"
-					},
-					{
-						"internalType": "uint256",
-						"name": "purchaseIndex",
-						"type": "uint256"
-					}
-				],
-				"name": "getPurchaseInfo",
-				"outputs": [
-					{
-						"components": [
-							{
-								"internalType": "address",
-								"name": "buyer",
-								"type": "address"
-							},
-							{
-								"internalType": "enum DigitalArtwork.PurchaseState",
-								"name": "state",
-								"type": "uint8"
-							},
-							{
-								"internalType": "uint256",
-								"name": "lockedDeposit",
-								"type": "uint256"
-							},
-							{
-								"internalType": "uint256",
-								"name": "purchaseTime",
-								"type": "uint256"
-							}
-						],
-						"internalType": "struct DigitalArtwork.Purchase",
-						"name": "",
-						"type": "tuple"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
 						"internalType": "bytes32",
 						"name": "role",
 						"type": "bytes32"
@@ -1119,6 +1017,19 @@
 						"internalType": "bool",
 						"name": "",
 						"type": "bool"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [],
+				"name": "keyServer",
+				"outputs": [
+					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
 					}
 				],
 				"stateMutability": "view",
@@ -1363,6 +1274,19 @@
 					}
 				],
 				"name": "setApprovalForAll",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "_keyServer",
+						"type": "address"
+					}
+				],
+				"name": "setKeyServer",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1824,11 +1748,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155.sol": {
-			"keccak256": "0xd9c6c4b890090caf2f0ab9b3e6972c42785130f5ba2f1383cc5e886ec0c6574a",
+			"keccak256": "0x453e49f4b36ba7f3867473f794220e15ed2b6e05aa5b0078ea4a91431704f700",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://189db559b3fb513a9697c1df820aabc30575425b0da56a1012a1d9f2a6230c10",
-				"dweb:/ipfs/QmWSkKBVf8semyC2Cy8sQ6r6yBzCJvqU5GvbufH5tsEF4Q"
+				"bzz-raw://4df40f3382049b76a393c549aa5675f8cda53ea7b533de455a40018a21ae9427",
+				"dweb:/ipfs/QmRnEFX4kwK3AGeoQxq636mzcwv4R9LjBvZR4EyGBM6VAf"
 			]
 		}
 	},
