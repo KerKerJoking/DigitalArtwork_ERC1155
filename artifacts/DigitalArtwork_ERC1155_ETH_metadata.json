@@ -205,7 +205,7 @@
 						"type": "uint256"
 					},
 					{
-						"indexed": false,
+						"indexed": true,
 						"internalType": "uint256",
 						"name": "purchaseIndex",
 						"type": "uint256"
@@ -215,6 +215,18 @@
 						"internalType": "address",
 						"name": "buyer",
 						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "purchaseAmount",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "depositLocked",
+						"type": "uint256"
 					}
 				],
 				"name": "ArtworkMinted",
@@ -324,7 +336,7 @@
 						"type": "uint256"
 					},
 					{
-						"indexed": false,
+						"indexed": true,
 						"internalType": "uint256",
 						"name": "purchaseIndex",
 						"type": "uint256"
@@ -336,7 +348,7 @@
 						"type": "address"
 					},
 					{
-						"indexed": true,
+						"indexed": false,
 						"internalType": "address",
 						"name": "buyer",
 						"type": "address"
@@ -344,11 +356,42 @@
 					{
 						"indexed": false,
 						"internalType": "uint256",
-						"name": "saleNet",
+						"name": "buyerRefund",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "keyServerFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "arbitratorFee",
+						"type": "uint256"
+					},
+					{
+						"indexed": false,
+						"internalType": "uint256",
+						"name": "artistCredit",
 						"type": "uint256"
 					}
 				],
 				"name": "FundsDistributed",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "keyServer",
+						"type": "address"
+					}
+				],
+				"name": "KeyServerSet",
 				"type": "event"
 			},
 			{
@@ -374,6 +417,25 @@
 					}
 				],
 				"name": "NFTBurned",
+				"type": "event"
+			},
+			{
+				"anonymous": false,
+				"inputs": [
+					{
+						"indexed": true,
+						"internalType": "address",
+						"name": "account",
+						"type": "address"
+					},
+					{
+						"indexed": false,
+						"internalType": "string",
+						"name": "keyURI",
+						"type": "string"
+					}
+				],
+				"name": "PublicKeyURISet",
 				"type": "event"
 			},
 			{
@@ -1088,6 +1150,25 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"name": "publicKeyURI",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
 						"internalType": "bytes32",
 						"name": "role",
 						"type": "bytes32"
@@ -1214,6 +1295,19 @@
 					}
 				],
 				"name": "setKeyServer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "keyURI",
+						"type": "string"
+					}
+				],
+				"name": "setPublicKeyURI",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1641,11 +1735,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155_ETH.sol": {
-			"keccak256": "0x18f3da6c76656141c66cecc074cf4d42817ebbe9748c98ec8e1022b48ff468c1",
+			"keccak256": "0x714e95d2a7ddb418144b8fc6ce7f60cf776464696de5c0b17c93618fea727ed5",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://306778ca516ea7d49b623f180189ac5b2dffd1fc993a04a44a26d18c916154ec",
-				"dweb:/ipfs/QmZ7VNeAsSz6hJFT7r1nCm963eSepgvzTqxYQVmQWWCdfU"
+				"bzz-raw://7920e7ac4965ad3360d7836b4002aa709bc8cbc1fad6b99b10342cb55005602f",
+				"dweb:/ipfs/QmeT8NN8HGo9L2gtqacLiWkPQvREpmRcibWS4jt1v6Xscy"
 			]
 		}
 	},
