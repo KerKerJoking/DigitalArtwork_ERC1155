@@ -237,25 +237,6 @@
 				"inputs": [
 					{
 						"indexed": true,
-						"internalType": "address",
-						"name": "artist",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					}
-				],
-				"name": "DepositStablecoin",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
 						"internalType": "uint256",
 						"name": "tokenId",
 						"type": "uint256"
@@ -386,19 +367,6 @@
 				"inputs": [
 					{
 						"indexed": true,
-						"internalType": "address",
-						"name": "keyServer",
-						"type": "address"
-					}
-				],
-				"name": "KeyServerSet",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
 						"internalType": "uint256",
 						"name": "tokenId",
 						"type": "uint256"
@@ -417,44 +385,6 @@
 					}
 				],
 				"name": "NFTBurned",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "account",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "string",
-						"name": "keyURI",
-						"type": "string"
-					}
-				],
-				"name": "PublicKeyURISet",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "account",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "bytes",
-						"name": "publicKey",
-						"type": "bytes"
-					}
-				],
-				"name": "PublicKeyUpdated",
 				"type": "event"
 			},
 			{
@@ -530,19 +460,6 @@
 					}
 				],
 				"name": "RoleRevoked",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
-						"internalType": "address",
-						"name": "stableCoinAddress",
-						"type": "address"
-					}
-				],
-				"name": "StableCoinAddressSet",
 				"type": "event"
 			},
 			{
@@ -667,25 +584,6 @@
 					}
 				],
 				"name": "VerificationResult",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": true,
-						"internalType": "address",
-						"name": "artist",
-						"type": "address"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "amount",
-						"type": "uint256"
-					}
-				],
-				"name": "WithdrawStablecoin",
 				"type": "event"
 			},
 			{
@@ -1072,6 +970,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "keyServerURL",
+				"outputs": [
+					{
+						"internalType": "string",
+						"name": "",
+						"type": "string"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "uint256",
@@ -1310,6 +1221,19 @@
 					}
 				],
 				"name": "setKeyServer",
+				"outputs": [],
+				"stateMutability": "nonpayable",
+				"type": "function"
+			},
+			{
+				"inputs": [
+					{
+						"internalType": "string",
+						"name": "newURL",
+						"type": "string"
+					}
+				],
+				"name": "setKeyServerURL",
 				"outputs": [],
 				"stateMutability": "nonpayable",
 				"type": "function"
@@ -1605,7 +1529,7 @@
 			"bytecodeHash": "ipfs"
 		},
 		"optimizer": {
-			"enabled": false,
+			"enabled": true,
 			"runs": 200
 		},
 		"remappings": []
@@ -1780,11 +1704,11 @@
 			]
 		},
 		"DigitalArtwork_ERC1155_Stablecoin.sol": {
-			"keccak256": "0xebc87d5f59eaa070a44c0d1861b490dfa36511fbd718feb05af1144cb74a22dc",
+			"keccak256": "0xacca308b91cc7427c4671590081cdbb7e6fdf9df1d61a17459be9a856a277042",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://84e5d5745905374856c50110aa69cbd3cb71c00da75ff881d3e923356c4d86c4",
-				"dweb:/ipfs/Qmei7BXwRCKUw5PUYf7y3JUvFbrgSjRN9KT5oNi3uRyj4c"
+				"bzz-raw://ce41a81589b032091979dfeb56de8fabda2542e7f4c0e95ca1b9a47526823412",
+				"dweb:/ipfs/Qmbb8914b4yjtRLu2pKaEyjQ8u6KTeR9VUJbpsK4Gh8FvC"
 			]
 		}
 	},

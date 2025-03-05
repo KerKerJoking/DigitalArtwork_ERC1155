@@ -13,7 +13,8 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     bytes32 public constant ARBITRATOR_ROLE = keccak256("ARBITRATOR_ROLE");
     // Key Server 地址定義
     address public keyServer;
-
+    // Key Server URL 定義
+    string public keyServerURL;
     // Artwork 模板的 tokenId 由 1 開始累計
     uint256 public currentArtworkId;
     // 用戶超時未完成 Purchase 時間
@@ -56,8 +57,6 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     // 事件定義
     // =====================================================
 
-    event KeyServerSet(address indexed keyServer);
-    event PublicKeyURISet(address indexed account, string keyURI);
     event ArtworkCreated(uint256 indexed tokenId, address indexed artist, uint256 price, uint256 supplyLimit);
     event ArtworkMinted(uint256 indexed tokenId, uint256 indexed purchaseIndex, address indexed buyer, uint256 purchaseAmount, uint256 depositLocked);
     event FundsDistributed(uint256 indexed tokenId, uint256 indexed purchaseIndex, address indexed artist, address buyer, uint256 buyerRefund, uint256 keyServerFee, uint256 arbitratorFee, uint256 artistCredit);
@@ -66,9 +65,6 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     event DisputeOpened(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer);
     event DisputeSettled(uint256 indexed tokenId, uint256 purchaseIndex, bool disputeResult);
     event NFTBurned(uint256 indexed tokenId, uint256 purchaseIndex, address indexed buyer);
-    event PublicKeyUpdated(address indexed account, bytes publicKey);
-    event DepositETH(address indexed artist, uint256 amount);
-    event WithdrawETH(address indexed artist, uint256 amount);
 
     // =====================================================
     // 建構子與 supportsInterface
@@ -83,13 +79,16 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     // Key Server 地址設定
     function setKeyServer(address _keyServer) external onlyRole(DEFAULT_ADMIN_ROLE) {
         keyServer = _keyServer;
-        emit KeyServerSet(_keyServer);
+    }
+
+    function setKeyServerURL(string calldata newURL) external {
+        require(msg.sender == keyServer, "OnlyKeyServer");
+        keyServerURL = newURL;
     }
     
     // 任何地址設定存放RSA公鑰的URI
     function setPublicKeyURI(string memory keyURI) external {
         publicKeyURI[msg.sender] = keyURI;
-        emit PublicKeyURISet(msg.sender, keyURI);
     }
 
     // Override supportsInterface to include ERC1155 and AccessControl interfaces
@@ -103,9 +102,8 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
 
     // Artist 存入 ETH 作為全域押金（供多次作品發行使用）
     function depositETH() external payable nonReentrant onlyRole(ARTIST_ROLE) {
-        require(msg.value > 0, "Must deposit positive ETH");
+        require(msg.value > 0, "TransferFail");
         artistDeposits[msg.sender] += msg.value;
-        emit DepositETH(msg.sender, msg.value);
     }
 
     // Artist 提領其可用的押金（注意：鎖定中的押金不可提領）
@@ -114,8 +112,7 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
         artistDeposits[msg.sender] -= amount;
         // 從合約地址轉移 ETH 至 Artist 帳戶
         (bool success, ) = payable(msg.sender).call{value: amount}("");
-        require(success, "Withdrawal failed");
-        emit WithdrawETH(msg.sender, amount);
+        require(success, "TransferFail");
     }
 
     // =====================================================
@@ -123,7 +120,7 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     // =====================================================
 
     function createArtwork(string memory _name, string memory _hash_json, uint256 _supplyLimit, uint256 _price) external onlyRole(ARTIST_ROLE) returns (uint256) {
-        require(_price % 10 == 0, "Price must be divisible by 10");
+        require(_price % 10 == 0, "InvalidPrice");
         currentArtworkId++;
         uint256 tokenId = currentArtworkId;
         artworks[tokenId] = Artwork({
@@ -147,13 +144,13 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     // 同時從該 Artwork 所屬 Artist 的全域押金中扣除 20% 售價金額作鎖定，記錄在該筆購買中
     function mintArtwork(uint256 _tokenId) external payable nonReentrant {
         Artwork storage art = artworks[_tokenId];
-        require(art.minted < art.supplyLimit, "All NFTs minted");
+        require(art.minted < art.supplyLimit, "SoldOut");
         uint256 depositAmount = art.price * 2 / 10; // 押金為 20% 售價
         uint256 requiredAmount = art.price + depositAmount;  // Customer 支付 120% 售價   
         // 檢查 Customer 地址轉入 ETH 數量是否正確
-        require(msg.value == requiredAmount, "Incorrect ETH amount sent");
+        require(msg.value == requiredAmount, "TransferFail");
         // 檢查並扣除該 Artwork 所屬 Artist 的全域押金（鎖定用）
-        require(artistDeposits[art.artist] >= depositAmount, "Artist deposit insufficient");
+        require(artistDeposits[art.artist] >= depositAmount, "NoDeposit");
         artistDeposits[art.artist] -= depositAmount;
         // 建立一筆新的購買記錄
         Purchase memory newPurchase = Purchase({
@@ -176,10 +173,10 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
 
     // Customer 驗證下載內容後回報結果
     function verifyPurchase(uint256 _tokenId, uint256 purchaseIndex, bool verificationResult) external nonReentrant {
-        require(purchaseIndex < artworkPurchases[_tokenId].length, "Invalid purchase index");
+        require(purchaseIndex < artworkPurchases[_tokenId].length, "InvalidIndex");
         Purchase storage purchase = artworkPurchases[_tokenId][purchaseIndex];
-        require(purchase.buyer == msg.sender, "Caller is not the buyer");
-        require(purchase.state == PurchaseState.Active, "Purchase not active");
+        require(purchase.buyer == msg.sender, "NotBuyer");
+        require(purchase.state == PurchaseState.Active, "InactivePurchase");
         Artwork storage art = artworks[_tokenId];
         emit VerificationResult(_tokenId, purchaseIndex, msg.sender, verificationResult);
 
@@ -189,10 +186,10 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
             uint256 feeAmount = art.price / 10; // 手續費為 10% 售價
             // 退還 Customer 20% 售價
             (bool successCustomer, ) = payable(msg.sender).call{value: depositAmount}("");
-            require(successCustomer, "Refund failed");
+            require(successCustomer, "RefundFail");
             // 將 10% 售價作為手續費交給 Key Server
             (bool successKeyserver, ) = payable(keyServer).call{value: feeAmount}("");
-            require(successKeyserver, "Refund failed");
+            require(successKeyserver, "RefundFail");
             // 將原本鎖定的押金加上銷售收益扣除手續費共 110% 售價累入 Artist 的押金池
             artistDeposits[art.artist] += (purchase.lockedDeposit + art.price - feeAmount);
             purchase.lockedDeposit = 0;
@@ -208,21 +205,21 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     // 如果 Customer 在超時期限內未確認，允許 artist 強制確認該筆購買
     function forceConfirmPurchase(uint256 _tokenId, uint256 purchaseIndex) external nonReentrant {
         Artwork storage art = artworks[_tokenId];
-        require(msg.sender == art.artist, "Only artist can force confirm");
-        require(purchaseIndex < artworkPurchases[_tokenId].length, "Invalid purchase index");
+        require(msg.sender == art.artist, "OnlyArtist");
+        require(purchaseIndex < artworkPurchases[_tokenId].length, "InvalidIndex");
         Purchase storage purchase = artworkPurchases[_tokenId][purchaseIndex];
-        require(purchase.state == PurchaseState.Active, "Purchase not active");
-        require(block.timestamp >= purchase.purchaseTime + CONFIRMATION_TIMEOUT, "Timeout not reached");
+        require(purchase.state == PurchaseState.Active, "InactivePurchase");
+        require(block.timestamp >= purchase.purchaseTime + CONFIRMATION_TIMEOUT, "TimeoutPending");
 
         // 模擬 Customer 驗證成功的處理流程
         uint256 depositAmount = art.price * 2 / 10; // 押金為 20% 售價
         uint256 feeAmount = art.price / 10; // 手續費為 10% 售價
         // 退還 Customer 10% 售價(20% 售價押金扣除 10% 售價手續費)
         (bool successCustomer, ) = payable(purchase.buyer).call{value: depositAmount - feeAmount}("");
-        require(successCustomer, "Refund failed");
+        require(successCustomer, "RefundFail");
         // 將 10% 售價作為手續費交給 Key Server
         (bool successKeyserver, ) = payable(keyServer).call{value: feeAmount}("");
-        require(successKeyserver, "Refund failed");
+        require(successKeyserver, "RefundFail");
         // 將原本鎖定的押金加上銷售收益共 120% 售價累入 Artist 的押金池
         artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
         purchase.lockedDeposit = 0;
@@ -233,9 +230,9 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
     
     // 仲裁者對爭議進行判定
     function settlePurchaseDispute(uint256 _tokenId, uint256 purchaseIndex, bool disputeResult) external nonReentrant onlyRole(ARBITRATOR_ROLE) {
-        require(purchaseIndex < artworkPurchases[_tokenId].length, "Invalid purchase index");
+        require(purchaseIndex < artworkPurchases[_tokenId].length, "InvalidIndex");
         Purchase storage purchase = artworkPurchases[_tokenId][purchaseIndex];
-        require(purchase.state == PurchaseState.Disputed, "Purchase not in dispute");
+        require(purchase.state == PurchaseState.Disputed, "NotDisputed");
         Artwork storage art = artworks[_tokenId];
         uint256 depositAmount = art.price * 2 / 10; // 押金為 20% 售價
         uint256 feeAmount = art.price / 10; // 手續費為 10% 售價
@@ -244,10 +241,10 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
             // 仲裁認定作品正確，不退還 Customer 費用
             // 將 10% 售價作為手續費交給 Key Server
             (bool successKeyserver, ) = payable(keyServer).call{value: feeAmount}("");
-            require(successKeyserver, "Refund failed");
+            require(successKeyserver, "RefundFail");
             // 將 10% 售價作為手續費交給 Arbitrator
             (bool successArbitrator, ) = payable(keyServer).call{value: feeAmount}("");
-            require(successArbitrator, "Refund failed");
+            require(successArbitrator, "RefundFail");
             // 將原本鎖定的押金加上銷售收益共 120% 售價累入 Artist 的押金池
             artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
             purchase.lockedDeposit = 0;
@@ -257,13 +254,13 @@ contract DigitalArtwork_ERC1155_ETH is ERC1155, ERC1155Holder, AccessControl, Re
             // 仲裁認定作品有誤
             // 全額退還 Customer (120% 售價)
             (bool successCustomer, ) = payable(purchase.buyer).call{value: art.price + depositAmount}("");
-            require(successCustomer, "Refund failed");
+            require(successCustomer, "RefundFail");
             // 將 10% 售價作為手續費交給 Key Server
             (bool successKeyserver, ) = payable(keyServer).call{value: feeAmount}("");
-            require(successKeyserver, "Refund failed");
+            require(successKeyserver, "RefundFail");
             // 將 10% 售價作為手續費交給 Arbitrator
             (bool successArbitrator, ) = payable(keyServer).call{value: feeAmount}("");
-            require(successArbitrator, "Refund failed");
+            require(successArbitrator, "RefundFail");
             // 不返還鎖定押金給 Artist
             purchase.lockedDeposit = 0;
             purchase.state = PurchaseState.Refunded;
