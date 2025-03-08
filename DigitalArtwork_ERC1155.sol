@@ -226,10 +226,10 @@ contract DigitalArtwork is ERC1155, ERC1155Holder, AccessControl, ReentrancyGuar
             // 將 10% 售價作為手續費交給 Key Server
             _safeTransferFrom(address(this), keyServer, ARTCOIN_ID, feeAmount, "");
             // 將原本鎖定的押金加上銷售收益扣除手續費共 110% 售價累入 Artist 的押金池
-            artistDeposits[art.artist] += (purchase.lockedDeposit + art.price - feeAmount);
+            artistDeposits[art.artist] += (depositAmount + art.price - feeAmount);
             purchase.lockedDeposit = 0;
             purchase.state = PurchaseState.Resolved;
-            emit FundsDistributed(_tokenId, purchaseIndex, art.artist, msg.sender, depositAmount, feeAmount, 0, (purchase.lockedDeposit + art.price - feeAmount));
+            emit FundsDistributed(_tokenId, purchaseIndex, art.artist, msg.sender, depositAmount, feeAmount, 0, (depositAmount + art.price - feeAmount));
         } else {
             // 驗證失敗：進入爭議仲裁流程
             purchase.state = PurchaseState.Disputed;
@@ -254,10 +254,10 @@ contract DigitalArtwork is ERC1155, ERC1155Holder, AccessControl, ReentrancyGuar
         // 將 10% 售價作為手續費交給 Key Server
         _safeTransferFrom(address(this), keyServer, ARTCOIN_ID, feeAmount, "");
         // 將原本鎖定的押金加上銷售收益共 120% 售價累入 Artist 的押金池
-        artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
+        artistDeposits[art.artist] += (depositAmount + art.price);
         purchase.lockedDeposit = 0;
         purchase.state = PurchaseState.Resolved;
-        emit FundsDistributed(_tokenId, purchaseIndex, art.artist, msg.sender, (depositAmount - feeAmount), feeAmount, 0, (purchase.lockedDeposit + art.price));
+        emit FundsDistributed(_tokenId, purchaseIndex, art.artist, msg.sender, (depositAmount - feeAmount), feeAmount, 0, (depositAmount + art.price));
         emit DisputeForced(_tokenId, purchaseIndex, msg.sender);
     }
 
@@ -277,10 +277,10 @@ contract DigitalArtwork is ERC1155, ERC1155Holder, AccessControl, ReentrancyGuar
             // 將 10% 售價作為手續費交給仲裁者
             _safeTransferFrom(address(this), msg.sender, ARTCOIN_ID, feeAmount, "");
             // 將原本鎖定的押金加上銷售收益共 120% 售價累入 Artist 的押金池
-            artistDeposits[art.artist] += (purchase.lockedDeposit + art.price);
+            artistDeposits[art.artist] += (depositAmount + art.price);
             purchase.lockedDeposit = 0;
             purchase.state = PurchaseState.Resolved;
-            emit FundsDistributed(_tokenId, purchaseIndex, art.artist, purchase.buyer, 0, feeAmount, feeAmount, (purchase.lockedDeposit + art.price));
+            emit FundsDistributed(_tokenId, purchaseIndex, art.artist, purchase.buyer, 0, feeAmount, feeAmount, (depositAmount + art.price));
         } else {
             // 仲裁認定作品有誤
             // 全額退還 Customer (120% 售價)
