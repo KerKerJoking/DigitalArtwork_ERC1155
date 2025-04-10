@@ -51,7 +51,7 @@ contract DigitalArtwork is ERC1155, ERC1155Holder, AccessControl, ReentrancyGuar
     struct Purchase {
         address buyer;         // 購買者地址
         PurchaseState state;   // 該筆購買的狀態
-        uint256 lockedDeposit; // 該次購買所鎖定的押金（通常為 2 倍售價）
+        uint256 lockedDeposit; // 該次購買所鎖定的押金
         uint256 purchaseTime; 
     }
 
